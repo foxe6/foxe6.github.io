@@ -191,10 +191,11 @@ window.cart_js = (function (app) {
                         });
                         $("div#stock").fadeIn();
                         $("div#stock > div.content").hide().effect("slide", {mode: "show", direction: "down"}, function () {
-                            var val = $("div#stock div#skus select option").eq(item_sku.findIndex(function (el) {
+                            var i = item_sku.findIndex(function (el) {
                                 return el["sku"] === current_sku;
-                            })).data("text");
-                            console.log(val);
+                            });
+                            var val = $("div#stock div#skus select option").eq(i).data("text");
+                            console.log([item_sku, current_sku, i, val]);
                             $("div#stock div#skus select").val(val).trigger("change");
                         });
                     });
