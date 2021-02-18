@@ -115,7 +115,7 @@ window.cart_js = (function (app) {
                         $("div#stock div#skus select").html("");
                         for (var i = 0; i < item_sku.length; i++) {
                             var kind = item_sku[i]["kind"];
-                            var option = $("<option/>").attr("value", kind).text(kind);
+                            var option = $("<option/>").data("value", kind).text(kind);
                             var deadline = item_sku[i]["late_po"] || item_sku[i]["deadline"];
                             if (item_sku[i]["status"][0][0] === 0 && deadline) {
                                 deadline = str2epoch(deadline);
@@ -195,7 +195,6 @@ window.cart_js = (function (app) {
                                 return el["sku"] === current_sku;
                             });
                             var val = $("div#stock div#skus select option").eq(i).data("text");
-                            console.log([item_sku, current_sku, i, val]);
                             $("div#stock div#skus select").val(val).trigger("change");
                         });
                     });
