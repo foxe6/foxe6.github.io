@@ -67,7 +67,7 @@ window.item_js = (function (app) {
                 $("div#stock div#skus select").html("");
                 for (var i=0; i<item_sku.length; i++) {
                     var kind = item_sku[i]["kind"];
-                    var option = $("<option/>").data("value", kind).text(kind);
+                    var option = $("<option/>").data("text", kind).text(kind);
                     var deadline = item_sku[i]["late_po"] || item_sku[i]["deadline"];
                     if (item_sku[i]["status"][0][0] === 0 && deadline) {
                         deadline = str2epoch(deadline);
