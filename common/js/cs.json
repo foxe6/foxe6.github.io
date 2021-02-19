@@ -1,0 +1,30 @@
+{
+  "cs": {
+    "whatsapp": "85265130055"
+  },
+  "topup": {
+    "wallet": {
+      "path": "https://foxe6.github.io/common/img/topup/wallet/",
+      "images": {
+        "AlipayHK": "alipayhk.jpg",
+        "PayMe": "payme.jpg",
+        "fps": "fps.jpg",
+        "bank": "bank.jpg",
+        "paypal": "paypal.jpg"
+      }
+    },
+    "qrcode": {
+      "path": "https://foxe6.github.io/common/img/topup/qrcode/",
+      "images": {
+        "AlipayHK": "alipayhk.jpg",
+        "PayMe": "payme.jpg"
+      }
+    },
+    "payee": "LI KA WAI",
+    "fps": "168301307",
+    "bank": {
+      "company": "Hang Seng Bank (024)",
+      "account": "382-160539-882"
+    }
+  }
+}
