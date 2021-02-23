@@ -1,1 +1,1 @@
-window.account_js=function(a){delete window.account_js;a.ac_info().appendTo("div#ac td#ac_info_target")};
+var _location=$("meta[name='description']").attr("content");window.account_js=function(a){delete window.account_js;a.ac_info().appendTo("div#ac td#ac_info_target")};
