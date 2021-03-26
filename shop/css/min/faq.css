@@ -1,1 +1,1 @@
-div#faq_header{height:10vh;font-size:6vh;background-color:var(--foxe2);box-shadow:0 .6vh .6vh var(--foxe2a)}div#faq_page{width:100%;height:80vh;overflow-y:auto}div#faq_page div.row:first-of-type{background-color:transparent}
+div#faq_header{height:calc(10 * var(--vh));font-size:calc(6 * var(--vh));background-color:var(--foxe2);box-shadow:0 calc(0.6 * var(--vh)) calc(0.6 * var(--vh)) var(--foxe2a)}div#faq_page{width:100%;height:calc(80 * var(--vh));overflow-y:auto}div#faq_page div.row:first-of-type{background-color:transparent}
