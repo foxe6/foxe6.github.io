@@ -21,7 +21,10 @@
       }
     },
     "payee": "LI KA WAI",
-    "fps": "168301307",
+    "fps": [
+      "168301307",
+      "162611495"
+    ],
     "bank": {
       "company": "Hang Seng Bank (024)",
       "account": "382-160539-882"
