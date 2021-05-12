@@ -1,0 +1,1 @@
+div#about_page{background-color:var(--foxe2);overflow-x:hidden;overflow-y:auto;max-height:calc(80 * var(--vh))}div#about_page div.rows .row div{margin-bottom:calc(0.5 * var(--vh))}div#title{height:calc(5 * var(--vh))}div#qa_q{text-align:center;font-weight:bold}
