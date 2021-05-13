@@ -10,14 +10,15 @@
         "PayMe": "payme.svg",
         "fps": "fps.svg",
         "bank": "bank.svg",
-        "paypal": "paypal.svg"
+        "PayPal": "paypal.svg"
       }
     },
     "qrcode": {
       "path": "https://foxe6.github.io/common/img/topup/qrcode/",
       "images": {
         "AlipayHK": "alipayhk.jpg",
-        "PayMe": "payme.jpg"
+        "PayMe": "payme.jpg",
+        "PayPal": "paypal.png"
       }
     },
     "payee": "LI KA WAI",
