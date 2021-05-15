@@ -1,4 +1,4 @@
-var pathname = window.location.pathname;
+var pathname = window.location.pathname.replace("index.html", "");
 if (pathname[pathname.length-1] === "/") {
     pathname = pathname.substr(0, pathname.length-1);
 }
