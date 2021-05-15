@@ -8,4 +8,4 @@ else {
     server_name += ".";
 }
 pathname = pathname.substr(pathname_index);
-window.location.href = "http://"+(server_name)+"foxe6.kozow.com"+pathname;
+window.location.href = "http://"+(server_name)+"foxe6.kozow.com"+pathname+window.location.search;
