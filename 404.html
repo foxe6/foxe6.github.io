@@ -1,4 +1,8 @@
 <script>
+if (window.location.href.indexOf("&amp;") >= 0) {
+    window.location = window.location.href.replace(/&amp;/g, "&");
+    throw new Error();
+}
 var pathname = window.location.pathname.replace("index.html", "");
 if (pathname[pathname.length-1] !== "/") {
     pathname += "/";
