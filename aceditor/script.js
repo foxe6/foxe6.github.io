@@ -73,8 +73,6 @@ $(document).ready(function(){
                 matches.push(m[0]);
             }
             history_name = matches.join(" ");
-            console.log(history_name)
-            return;
         }
         var content = editor.session.getValue();
         backup_post(api_url, {"save": fp, "content": btoa(encodeURIComponent(content)), "history_name": history_name}, function (response) {
