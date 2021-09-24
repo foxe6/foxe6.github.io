@@ -60,19 +60,19 @@ $(document).ready(function(){
         open_path(last_path);
     }
     function save_file(e, fp) {
-        var history_name = "unknown save";
+        var history_name;
         if (!fp) {
             fp = window.location.hash.slice(1);
             if (editor.session.getValue() === original_text) {
                 set_status("File not needed to save.")
                 return;
             }
-            history_name = prompt("Why do you save this file?\nThis is used for identify history.\nprintable strings only")||history_name;
+            history_name = prompt("Why do you save this file?\nThis is used for identify history.\nprintable strings only")||"unknown save";
             var matches = [];
             for (var m of history_name.matchAll(/[A-Za-z0-9_]+/g)) {
                 matches.push(m[0]);
             }
-            history_name = matches.join(" ");
+            history_name = matches.join("_")||"unknown save";
         }
         var content = editor.session.getValue();
         backup_post(api_url, {"save": fp, "content": btoa(encodeURIComponent(content)), "history_name": history_name}, function (response) {
