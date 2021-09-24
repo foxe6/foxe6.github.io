@@ -1,0 +1,112 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+button.sponsor{
+    font-weight: bold;
+}
+button.sponsor,
+div#toolbar,
+div#statusbar,
+div#dialog div.close:hover,
+div#dialog div[data-val]:hover,
+div#dialog div[data-path]:hover,
+div#dialog div[data-version]:hover,
+div#statusbar div.ace_status-indicator,
+div#toolbar::-webkit-scrollbar,
+div#statusbar::-webkit-scrollbar {
+    background: #1a1a1a;
+    color: #DEDEDE;
+}
+div#toolbar,
+div#statusbar {
+    height: calc(4vh + 5px);
+    position: relative;
+}
+div#statusbar .statustext {
+    display: inline-block;
+    text-align: left;
+    overflow: hidden;
+    cursor: pointer;
+    transition: background-color 333ms;
+}
+div#statusbar .statustext.alert {
+    background-color: white;
+    transition: none;
+}
+div#statusbar .ace_status-indicator {
+    top: 0;
+    right: 0;
+    position: absolute;
+}
+div#statusbar .ace_status-indicator:before {
+    content: "Ln:Col ";
+}
+div#statusbar,
+div#toolbar {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+div#statusbar::-webkit-scrollbar,
+div#toolbar::-webkit-scrollbar {
+    height: 5px;
+}
+div#toolbar::-webkit-scrollbar-thumb {
+    background: #000;
+    border: 1px solid #1a1a1a;
+}
+div#toolbar .toolbar {
+    white-space: nowrap;
+}
+div#statusbar .ace_status-indicator,
+div#statusbar .statustext,
+div#toolbar .toolbar button {
+    font-size: 2vh;
+    border: 0;
+    height: 4vh;
+    margin: 0 1vh;
+    padding: 1vh;
+}
+button.sponsor,
+div#toolbar .toolbar button{
+    cursor: pointer;
+}
+div#editor {
+    width: 100vw;
+    height: calc(100vh - ((4vh + 5px) * 2));
+}
+div#dialog{
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 5vh 5vw;
+    padding: 5vh 5vw;
+    text-align: center;
+    font-family: monospace;
+    font-size: 2vh;
+    width: 80vw;
+    height: 80vh;
+    border: 1px solid #DEDEDE;
+}
+div#dialog .close{
+    position: absolute;
+    top: 1vh;
+    left: 0;
+    font-size: 3vh;
+    width: 90vw;
+    text-align: center;
+    cursor: pointer;
+}
+div#dialog div.files {
+    overflow: auto;
+    width: 80vw;
+    height: 80vh;
+}
+div#dialog div[data-version],
+div#dialog div[data-val],
+div#dialog div[data-path]{
+    margin-top: 0.1vh;
+    cursor: pointer;
+    border-bottom: 1px solid #1a1a1a;
+}
