@@ -153,6 +153,9 @@ $(document).ready(function(){
             }, false);
         });
     }
+    function gotoline() {
+        editor.prompt({ $type: "gotoLine" });
+    }
     function build_toolbar(){
         var buildDom = ace.require("ace/lib/dom").buildDom;
         buildDom(
@@ -160,7 +163,7 @@ $(document).ready(function(){
                 "div",
                 { class: "toolbar" },
                 [
-                    "button",
+                    "div",
                     {
                         class: "sponsor ace-tomorrow-night-bright",
                         onclick: function () {
@@ -170,7 +173,7 @@ $(document).ready(function(){
                     "ACE"
                 ],
                 [
-                    "button",
+                    "div",
                     {
                         class: "ace-tomorrow-night-bright",
                         ref: "openButton",
@@ -179,7 +182,7 @@ $(document).ready(function(){
                     "Open"
                 ],
                 [
-                    "button",
+                    "div",
                     {
                         class: "ace-tomorrow-night-bright",
                         ref: "saveButton",
@@ -188,7 +191,7 @@ $(document).ready(function(){
                     "Save"
                 ],
                 [
-                    "button",
+                    "div",
                     {
                         class: "ace-tomorrow-night-bright",
                         ref: "saveAsButton",
@@ -197,7 +200,7 @@ $(document).ready(function(){
                     "Save As"
                 ],
                 [
-                    "button",
+                    "div",
                     {
                         class: "ace-tomorrow-night-bright",
                         ref: "historyButton",
@@ -206,7 +209,7 @@ $(document).ready(function(){
                     "History"
                 ],
                 [
-                    "button",
+                    "div",
                     {
                         class: "ace-tomorrow-night-bright",
                         ref: "findButton",
@@ -217,7 +220,7 @@ $(document).ready(function(){
                     "Find"
                 ],
                 [
-                    "button",
+                    "div",
                     {
                         class: "ace-tomorrow-night-bright",
                         ref: "findButton",
@@ -228,7 +231,7 @@ $(document).ready(function(){
                     "Replace"
                 ],
                 [
-                    "button",
+                    "div",
                     {
                         class: "ace-tomorrow-night-bright",
                         ref: "wrapButton",
@@ -240,7 +243,7 @@ $(document).ready(function(){
                     "Wrap"
                 ],
                 [
-                    "button",
+                    "div",
                     {
                         class: "ace-tomorrow-night-bright",
                         ref: "printButton",
@@ -249,23 +252,23 @@ $(document).ready(function(){
                     "Print"
                 ],
                 [
-                    "button",
+                    "div",
                     {
                         class: "ace-tomorrow-night-bright",
                         ref: "logButton",
                         onclick: function () {
-                            window.open("/log.log");
+                            window.open("./log.log");
                         }
                     },
                     "Log"
                 ],
                 [
-                    "button",
+                    "div",
                     {
                         class: "ace-tomorrow-night-bright",
                         ref: "helpButton",
                         onclick: function () {
-                            var kbs = "<table class='ace-tomorrow-night-bright' style='margin: 0 auto'>";
+                            var kbs = "<div class='files'><table class='ace-tomorrow-night-bright' style='margin: 0 auto'>";
                             var _ = [];
                             for (var key in editor.keyBinding.$defaultHandler.commandKeyBinding) {
                                 _.push([key, editor.keyBinding.$defaultHandler.commandKeyBinding[key]]);
@@ -284,7 +287,7 @@ $(document).ready(function(){
                                 var v = _[i][1];
                                 kbs += "<tr><th>"+k+"</th><td>"+v["description"]+"</td></tr>";
                             }
-                            kbs += "</table>";
+                            kbs += "</table></div>";
                             $("div#dialog").append(kbs).show();
                         }
                     },
@@ -426,9 +429,7 @@ $(document).ready(function(){
             [
                 "gotoline",
                 "Goto Line",
-                function(){
-                    editor.prompt({ $type: "gotoLine" });
-                },
+                gotoline,
                 win("g", 1),
                 mac("g", 1),
                 0,
@@ -497,9 +498,12 @@ $(document).ready(function(){
             "ctrl-/","cmd-/",
             "home","end",
             "ctrl-home","ctrl-end","cmd-home","cmd-end",
+            "shift-home","shift-end",
             "ctrl-shift-home","ctrl-shift-end","cmd-shift-home","cmd-shift-end",
             "tab","shift-tab",
             "ctrl-a","cmd-a",
+            "backspace",
+            "delete",
         ];
         for (var kb in editor.keyBinding.$defaultHandler.commandKeyBinding) {
             if (safe_keybinds.indexOf(kb) === -1) {
@@ -524,17 +528,78 @@ $(document).ready(function(){
                 $("div#statusbar .statustext").html("File loading ...");
                 editor.session.setUseSoftTabs(true);
                 editor.session.setValue(response, -1);
+                var sep = response.match(/(\r\n|[\r\n])/g)||["\n"];
+                var linesep = "LF";
+                if (sep[0] === "\r\n") {
+                    linesep = "CRLF";
+                }
+                else if (sep[0] === "\r") {
+                    linesep = "CR";
+                }
+                $("div#linesepselect > div[data-sep='"+linesep.toLowerCase()+"']").addClass("highlight");
+                $("div#statusbar .linesep").text(linesep).off("click").click(function () {
+                    var linesepselect = $("div#linesepselect");
+                    if (linesepselect.is(":visible")){
+                        linesepselect.hide();
+                    }
+                    else {
+                        linesepselect.show();
+                    }
+                    var offset = $(this).offset();
+                    offset.top = "calc(100vh - 4vh - 5px - "+linesepselect.height()+"px)";
+                    linesepselect.css(offset);
+                });
                 set_status("File loaded.");
                 $("title").html("ACE - "+f.split("/").slice(-1)[0]);
             }).fail(function (response) {
                 original_text = "";
                 editor.session.setValue("", -1);
                 set_status("File failed to load. Reason: "+response.responseText);
+                $("div#statusbar .linesep").text("LF");
             });
         }
         else {
             set_status("Editor loaded. Text mode. Temp mode. Open or New file to continue.");
         }
+    }
+    function setup_events() {
+        window.onhashchange = function(){
+            if (window.location.hash.slice(1) === prev_hash) {
+                return;
+            }
+            if (editor.session.getValue() !== original_text) {
+                if (!confirm(onbeforeunload())) {
+                    window.location.hash = "#"+prev_hash;
+                    return;
+                }
+            }
+            load_file();
+        }
+        $("div#dialog div.close").click(function () {
+            $("div#dialog > *:not(div.close)").remove();
+            $("div#dialog").hide();
+        });
+        $("div#statusbar .statustext").click(function () {
+            alert($(this).text());
+        });
+        $("div#statusbar .ace_status-indicator").click(gotoline);
+        $("div#linesepselect > div").click(function () {
+            $(this).parent().children().removeClass("highlight");
+            $(this).addClass("highlight");
+            var linesep = $(this).data("sep");
+            var linesep_e = $("div#statusbar .linesep");
+            if (linesep_e.text() === "???" && !confirm("Are you sure to replace all CR and LF to "+linesep.toUpperCase()+"?")){
+                return;
+            }
+            linesep_e.text(linesep.toUpperCase());
+            linesep = linesep.replace("cr", "\r").replace("lf", "\n");
+            var content = editor.session.getValue();
+            content = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+            content = content||[];
+            content = content.join(linesep);
+            editor.session.setValue(content, -1);
+            $(this).parent().hide();
+        });
     }
     var statusbarto;
     var last_path = "/";
@@ -556,32 +621,18 @@ $(document).ready(function(){
     var StatusBar = ace.require("ace/ext/statusbar").StatusBar;
     var statusbar = new StatusBar(editor, $("div#statusbar").get(0));
     setup_keybinds();
-    $("div#dialog div.close").click(function () {
-        $("div#dialog > *:not(div.close)").remove();
-        $("div#dialog").hide();
-    });
+    setup_events();
     load_file();
-    $("div#statusbar .statustext").click(function () {
-        alert($(this).text());
-    });
-    window.onhashchange = function(){
-        if (window.location.hash.slice(1) === prev_hash) {
-            return;
-        }
-        if (editor.session.getValue() !== original_text) {
-            if (!confirm(onbeforeunload())) {
-                window.location.hash = "#"+prev_hash;
-                return;
-            }
-        }
-        load_file();
-    }
     setInterval(function () {
-        if ($(".statustext").html().indexOf("failed") !== -1) return;
+        if ($("div#statusbar .statustext").html().indexOf("failed") !== -1) return;
         var v = editor.session.getValue();
         var _ = v!==original_text;
         if (_) {
-            set_status("File changed. Size change: "+(v.length-original_text.length));
+            var why = ""
+            if (editor.session.getUndoManager().isClean()) {
+                why = " (Probably due to changed/unified line separators)";
+            }
+            set_status("File changed."+why+" Size change: "+(v.length-original_text.length));
         }
         else {
             set_status("File not changed.")
