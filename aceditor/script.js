@@ -482,6 +482,38 @@ $(document).ready(function(){
                 0,
                 true
             ],
+            [
+                "addlineabove",
+                "Add Line Above",
+                function () {
+                    var row = editor.session.selection.lead.row+1;
+                    editor.session.insert({
+                        "row": row-1,
+                        "column": 0
+                    }, "\n");
+                    editor.gotoLine(row);
+                },
+                win("return", 0, 1),
+                mac("return", 0, 1),
+                "cursor",
+                "forEachLine",
+            ],
+            [
+                "addlinebelow",
+                "Add Line Below",
+                function () {
+                    var row = editor.session.selection.lead.row+1;
+                    editor.session.insert({
+                        "row": row-1,
+                        "column": editor.session.getLine(row-1).length
+                    }, "\n");
+                    editor.gotoLine(row+1);
+                },
+                win("return", 1),
+                mac("return", 1),
+                "cursor",
+                "forEachLine",
+            ],
 
         ]
         var safe_keybinds = [
@@ -502,6 +534,7 @@ $(document).ready(function(){
             "ctrl-shift-home","ctrl-shift-end","cmd-shift-home","cmd-shift-end",
             "tab","shift-tab",
             "ctrl-a","cmd-a",
+            "shift-a",
             "backspace",
             "delete",
         ];
@@ -514,6 +547,21 @@ $(document).ready(function(){
             editor.commands.addCommand(build_cmds(cmds[i]));
         }
         console.log("Key Binds", editor.keyBinding.$defaultHandler.commandKeyBinding);
+    }
+    function setup_linesep(linesep) {
+        $("div#linesepselect > div[data-sep='"+linesep.toLowerCase()+"']").addClass("highlight");
+        $("div#statusbar .linesep").text(linesep).off("click").click(function () {
+            var linesepselect = $("div#linesepselect");
+            if (linesepselect.is(":visible")){
+                linesepselect.hide();
+            }
+            else {
+                linesepselect.show();
+                var offset = $(this).offset();
+                offset.top = "calc(100vh - 4vh - 5px - "+linesepselect.height()+"px)";
+                linesepselect.css(offset);
+            }
+        });
     }
     function load_file(){
         if (window.location.hash.slice(1)){
@@ -536,19 +584,7 @@ $(document).ready(function(){
                 else if (sep[0] === "\r") {
                     linesep = "CR";
                 }
-                $("div#linesepselect > div[data-sep='"+linesep.toLowerCase()+"']").addClass("highlight");
-                $("div#statusbar .linesep").text(linesep).off("click").click(function () {
-                    var linesepselect = $("div#linesepselect");
-                    if (linesepselect.is(":visible")){
-                        linesepselect.hide();
-                    }
-                    else {
-                        linesepselect.show();
-                    }
-                    var offset = $(this).offset();
-                    offset.top = "calc(100vh - 4vh - 5px - "+linesepselect.height()+"px)";
-                    linesepselect.css(offset);
-                });
+                setup_linesep(linesep);
                 set_status("File loaded.");
                 $("title").html("ACE - "+f.split("/").slice(-1)[0]);
             }).fail(function (response) {
@@ -559,6 +595,7 @@ $(document).ready(function(){
             });
         }
         else {
+            setup_linesep("LF");
             set_status("Editor loaded. Text mode. Temp mode. Open or New file to continue.");
         }
     }
@@ -626,6 +663,7 @@ $(document).ready(function(){
     setInterval(function () {
         if ($("div#statusbar .statustext").html().indexOf("failed") !== -1) return;
         var v = editor.session.getValue();
+        if (!v) return;
         var _ = v!==original_text;
         if (_) {
             var why = ""
