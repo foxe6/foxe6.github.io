@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>HLS Player</title>
+<style>
+*{
+    margin:0;
+    padding:0;
+}
+body{
+    background-color: black;
+}
+#playlist,
+#playerwrapper,
+#player{
+    position:absolute;
+    width:100%!important;
+    height:100%!important;
+    overflow:hidden;
+}
+#player{
+    top: 50%;
+    transform: translateY(-50%);
+}
+.jw-controlbar .jw-icon-next{
+    display: none;
+}
+.jw-dock .jw-icon-next {
+    width: 44px;
+    text-align: center;
+    line-height: 44px;
+}
+.jw-dock .jw-icon-prev.jw-icon-next:before {
+    display: inline-block;
+    transform: rotate(180deg);
+}
+.jw-display.jw-reset.hide {
+    display: none !important;
+    pointer-events: none !important;
+}
+div[aria-label="Playback rates"],
+.jw-preview.jw-reset,
+.jw-nextup-container {
+    display: none !important;
+}
+div#cpr{
+    display: inline-block;
+    color: white;
+    font-size: 0.8em;
+    padding: 0.8em;
+}
+.jw-flag-time-slider-above:not(.jw-flag-ads-googleima).jwplayer .jw-slider-time .jw-buffer,
+.jw-flag-time-slider-above:not(.jw-flag-ads-googleima).jwplayer .jw-slider-time .jw-progress,
+.jw-flag-time-slider-above:not(.jw-flag-ads-googleima).jwplayer .jw-slider-time .jw-rail{
+    height: 20px !important;
+}
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<script src="jwplayer/jwplayer.js"></script></head>
+<body>
+<div id="player"></div>
+<script>
+var hash = window.location.hash;
+var temp = (window.location.href+(hash?"#"+hash:"")).split("?")[1].split("&");
+var params = {}, pk = "", pks = ["v", "a", "t", "r"];
+for (var i=0; i<temp.length; i++) {
+    var _ = temp[i].split("="), k = _[0], v = _[1];
+    if (pks.indexOf(k) == -1) {
+      params[pk] += "&"+decodeURIComponent(k)+(v == undefined?"":"="+decodeURIComponent(v));
+      continue;
+    }
+    params[k] = decodeURIComponent(v);
+    for (var j=2; j<_.length; j++) {
+      params[k] += "="+decodeURIComponent(_[j]);
+    }
+    pk = k;
+}
+var temp = document.cookie.split("; ");
+var cookie = {}
+for (var i=0; i<temp.length; i++) {
+    var _ = temp[i].split("="), k = _[0], v = _[1];
+    cookie[k] = decodeURIComponent(v);
+}
+
+var vurl = encodeURI(params["v"]);
+document.title = params["t"]||document.title;
+var playlist;
+if (vurl.indexOf("vlc") === 0) {
+    vurl = vurl.slice(6);
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            playlist = xhr.responseText.split("#EXTINF:0,").slice(1);
+            for (var i=0; i<playlist.length; i++) {
+                var tmp = playlist[i].split("\n");
+                tmp[1] = tmp[1].split("#EXTIMG:").slice(-1)[0];
+                playlist[i] = {
+                    "file": tmp[2],
+                    "title": tmp[0],
+                    "image": tmp[1]
+                };
+                tmp = new Image();
+                tmp.src = playlist[i]["image"];
+            }
+            cfg["playlist"] = playlist;
+            p.setup(cfg);
+        }
+    }
+    xhr.open('GET', vurl, true);
+    xhr.send(null);
+    vurl = null;
+}
+
+var p = jwplayer("player"), cfg = {
+    id: "player",
+    controls: true,
+    displaytitle: true,
+    width: "100%",
+    height: "100%",
+    aspectratio: "16:9",
+    fullscreen: "true",
+    autostart: params["a"]==1?true:false,
+    preload: "none",
+    playbackRateControls: [0.5, 1, 1.25, 1.5, 2, 4],
+    skin: {
+        name: "glow",
+    },
+    ga: {
+        label: "title"
+    },
+};
+if (vurl) {
+    cfg["file"] = vurl;
+    cfg["title"] = ""||params["t"];
+    p.setup(cfg);
+}
+
+var ti = setInterval(function(){
+    if (!document.querySelector("*[aria-label='Start playback']")) return;
+    clearInterval(ti);
+    p.addButton(
+        '',
+        'Next',
+        p.playlistNext,
+        'next',
+        'jw-icon-next jw-icon jw-button-color'
+    );
+    p.addButton(
+        '',
+        'Previous',
+        p.playlistPrev,
+        'previous',
+        'jw-icon-prev jw-icon-next jw-icon jw-button-color'
+    );
+    var cpr = document.createElement("div");
+    cpr.id = "cpr";
+    cpr.addEventListener("click", function(){
+    var index = -1;
+    for (var i=0; i<cfg.playbackRateControls.length; i++) {
+      if (p.getPlaybackRate() == cfg.playbackRateControls[i]) {
+        break;
+      }
+    }
+    i = (i+1)%cfg.playbackRateControls.length;
+    p.setPlaybackRate(cfg.playbackRateControls[i]);
+    cpr.innerHTML = (cfg.playbackRateControls[i])+"x";
+    });
+    var tar = document.querySelector('div[aria-label="Playback rates"]');
+    tar.parentNode.insertBefore(cpr, tar);
+    var rewind_icons = document.querySelectorAll(".jw-icon-rewind");
+    for (var i=0; i<rewind_icons.length; i++) {
+      rewind_icons[i].remove();
+    }
+    var playback_button = document.querySelector(".jw-icon-playback");
+    playback_button.style.cssText = "display: inline-block !important;";
+    function hide_controls(){
+      document.querySelector(".jw-display.jw-reset").remove();
+    }
+    document.querySelector("*[aria-label='Start playback']").addEventListener("click", hide_controls);
+    document.querySelector("video.jw-video.jw-reset").addEventListener("click", hide_controls);
+    p.setVolume(cookie["volume"]||p.getVolume());
+    p.on("volume", function(e){
+        document.cookie = `volume=${p.getVolume()};`;
+    });
+    p.setPlaybackRate(parseFloat(cookie["pr"])||p.getPlaybackRate());
+    cpr.innerHTML = parseFloat(cookie["pr"])+"x";
+    p.on("playbackRateChanged", function(e){
+        document.cookie = `pr=${p.getPlaybackRate()};`;
+    });
+}, 100);
+
+</script>
+</body>
+</html>
