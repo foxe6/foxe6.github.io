@@ -228,11 +228,11 @@ $(document).ready(function(){
                 for (var i=0; i<v.length; i++) {
                     bm_toggle(v[i]);
                 }
+                $("div#dialog div.close").click();
+                bookmark();
             }
         });
         fi.get(0).click();
-        $("div#dialog div.close").click();
-        bookmark();
     }
     function bookmark() {
         var htmls = "<div class='files'>";
@@ -567,7 +567,7 @@ $(document).ready(function(){
             }
         }
         if (typeof readOnly == "boolean") {
-            cmd["readOnly"] = readOnly?true:false;
+            cmd["readOnly"] = readOnly;
         }
         return cmd;
     }
@@ -880,7 +880,7 @@ $(document).ready(function(){
                 set_status(status);
             }
             var url = window.location.search.split("url=");
-            if (url.length == 2) {
+            if (url.length === 2) {
                 url = url.slice(-1)[0];
                 editor.session.setMode(guess_mode(url));
                 $.get(url, callback).fail(function(){
