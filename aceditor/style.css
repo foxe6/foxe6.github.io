@@ -12,12 +12,25 @@ div#dialog div.close:hover,
 div#dialog div[data-val]:hover,
 div#dialog div[data-path]:hover,
 div#dialog div[data-version]:hover,
+div#dialog div[data-dummy]:hover,
 div#statusbar .ace_status-indicator,
 div#linesepselect > div,
 div#toolbar::-webkit-scrollbar,
-div#statusbar::-webkit-scrollbar {
+div#statusbar::-webkit-scrollbar,
+div#dialog div.files table tr:hover{
     background: #1a1a1a;
     color: #DEDEDE;
+}
+div#statusbar .ace_status-indicator,
+div#statusbar .statustext,
+div#statusbar .linesep,
+div#linesepselect > div,
+div#toolbar .toolbar > div{
+    font-size: 2vh;
+    border: 0;
+    height: 2vh;
+    margin: 0 1vh;
+    padding: 1vh;
 }
 div#toolbar,
 div#statusbar {
@@ -30,6 +43,8 @@ div#linesepselect {
 }
 div#linesepselect > div{
     cursor: pointer;
+    font-family: monospace;
+    margin: 0;
 }
 div#statusbar .statustext {
     display: inline-block;
@@ -52,15 +67,19 @@ div#statusbar .ace_status-indicator {
 }
 div#statusbar .ace_status-indicator {
     right: 0;
+    font-family: monospace;
 }
 div#statusbar .linesep{
-    left: calc(80vw - 6vh);
+    right: 14vw;
+    font-family: monospace;
 }
 div#statusbar .ace_status-indicator:before {
     content: "Ln:Col ";
+    font-family: initial;
 }
 div#statusbar .linesep:before {
     content: "Ln Sep: ";
+    font-family: initial;
 }
 div#statusbar,
 div#toolbar {
@@ -77,17 +96,6 @@ div#toolbar::-webkit-scrollbar-thumb {
 }
 div#toolbar .toolbar {
     white-space: nowrap;
-}
-div#statusbar .ace_status-indicator,
-div#statusbar .statustext,
-div#statusbar .linesep,
-div#linesepselect > div,
-div#toolbar .toolbar > div{
-    font-size: 2vh;
-    border: 0;
-    height: 2vh;
-    margin: 0 1vh;
-    padding: 1vh;
 }
 div#toolbar .toolbar > div{
     cursor: pointer;
@@ -127,6 +135,7 @@ div#dialog div.files {
 }
 div#dialog div[data-version],
 div#dialog div[data-val],
+div#dialog div[data-dummy],
 div#dialog div[data-path]{
     margin-top: 0.1vh;
     cursor: pointer;

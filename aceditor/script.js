@@ -2,6 +2,13 @@ $(document).ready(function(){
     var backup_post = $.post;
     $.post = undefined;
     var api_url = "api.py";
+    function download(filename, text) {
+        var e = $("<a/>");
+        e.attr("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text));
+        e.attr("download", filename);
+        e.appendTo("body").hide().get(0).click();
+        e.remove();
+    }
     function open_path(path) {
         path = path || "/";
         last_path = path;
@@ -47,7 +54,8 @@ $(document).ready(function(){
                         return;
                     }
                     else if (e.which === 3) {
-                        window.open(window.location.origin+"/"+hash);
+                        window.open("/"+hash);
+                        return false;
                     }
                 }
             });
@@ -132,6 +140,169 @@ $(document).ready(function(){
             }
         });
     }
+    function support_localStorage() {
+        // try {
+            var _ = "test";
+            window.localStorage.setItem(_, _);
+            window.localStorage.removeItem(_);
+            return true;
+        // } catch(e) {
+        //     return false;
+        // }
+    }
+    function bm_toggle(_v){
+        if (!_v) return;
+        var v = encodeURIComponent(_v);
+        if (support_localStorage()) {
+            if (bm_get().indexOf(v) === -1) {
+                var lastid = bm_lastid_get()+1;
+                bm_lastid_set(lastid);
+                lastid = "bm"+lastid;
+                window.localStorage.setItem(lastid, JSON.stringify(v));
+            }
+            else {
+                bm_rm(_v);
+                if (bm_get().length === 0) {
+                    bm_lastid_set(0);
+                }
+            }
+        }
+    }
+    function bm_get(){
+        if (support_localStorage()) {
+            var _ = [];
+            for (var i=0; i<window.localStorage.length; i++) {
+                if (window.localStorage.key(i) === "lastid") continue;
+                _.push(JSON.parse(window.localStorage[window.localStorage.key(i)]));
+            }
+            _.sort();
+            return _;
+        }
+    }
+    function bm_rm(_v){
+        var v = encodeURIComponent(_v);
+        if (support_localStorage()) {
+            for (var i=0; i<window.localStorage.length; i++) {
+                if (JSON.parse(window.localStorage[window.localStorage.key(i)]) === v) {
+                    window.localStorage.removeItem(window.localStorage.key(i));
+                    break;
+                }
+            }
+        }
+    }
+    function bm_lastid_get(){
+        if (support_localStorage()) {
+            try{
+                return JSON.parse(window.localStorage.getItem("lastid"));
+            }
+            catch (e) {
+                bm_lastid_set(0);
+                return 0;
+            }
+        }
+    }
+    function bm_lastid_set(lastid){
+        if (support_localStorage()) {
+            return window.localStorage.setItem("lastid", JSON.stringify(lastid));
+        }
+    }
+    function bm_export(){
+        var v = bm_get();
+        for (var i=0; i<v.length; i++) {
+            v[i] = decodeURIComponent(v[i]);
+        }
+        download("ace-bookmark.json", JSON.stringify(v));
+    }
+    function bm_import(){
+        var fi = $("<input type='file' style='display: none'/>");
+        fi.appendTo("body");
+        fi.change(function (){
+            var file = fi.get(0).files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.readAsText(file, "UTF-8");
+            reader.onload = function (e) {
+                fi.remove();
+                var v = e.target.result;
+                v = JSON.parse(v);
+                for (var i=0; i<v.length; i++) {
+                    bm_toggle(v[i]);
+                }
+            }
+        });
+        fi.get(0).click();
+        $("div#dialog div.close").click();
+        bookmark();
+    }
+    function bookmark() {
+        var htmls = "<div class='files'>";
+        htmls += "<div id='import_bm' data-dummy>Import Bookmark</div>";
+        htmls += "<div id='export_bm' data-dummy>Export Bookmark</div>";
+        if (window.location.hash.slice(1)) {
+            htmls += "<div id='toggle_bm' data-dummy>Toggle Current File<br>( " + $("<p/>").text(window.location.hash.slice(1)).html() + " )</div>";
+        }
+        var bms = bm_get() || [];
+        var prev_dir = "";
+        var max_len_f = -1;
+        var max_len_d = -1;
+        for (var i = 0; i < bms.length; i++) {
+            var bm = $("<p/>").text(decodeURIComponent(bms[i])).html().split("/");
+            var len_f = bm.slice(-1)[0].length;
+            if (len_f > max_len_f) {
+                max_len_f = len_f+1;
+            }
+            var len_d = bm.slice(0, -1).join("/").length;
+            if (len_d > max_len_d) {
+                max_len_d = len_d;
+            }
+        }
+        if (max_len_d < max_len_f) {
+            max_len_d = max_len_f+4;
+        }
+        if (bms.length > 0) {
+            htmls += "<div data-dummy>&nbsp;</div>";
+        }
+        for (var i = 0; i < bms.length; i++) {
+            var bm = $("<p/>").text(decodeURIComponent(bms[i])).html();
+            var cur_dir = bm.split("/");
+            var name = cur_dir.slice(-1)[0];
+            name = ("    /"+name.padEnd(max_len_f, " ")).replace(/ /g, "&nbsp;");
+            cur_dir = cur_dir.slice(0, -1).join("/").padEnd(max_len_d, " ").replace(/ /g, "&nbsp;");
+            if (prev_dir !== cur_dir) {
+                prev_dir = cur_dir;
+                htmls += "<div data-dummy>"+cur_dir+"</div>";
+            }
+            bm = name;
+            htmls += "<div data-val='" + bms[i] + "'>" + bm + "</div>";
+        }
+        htmls += "</div>";
+        $("div#dialog").append(htmls).show();
+        $("div#toggle_bm").click(function () {
+            bm_toggle(window.location.hash.slice(1));
+            $("div#dialog div.close").click();
+            bookmark();
+        });
+        $("div#import_bm").click(bm_import);
+        $("div#export_bm").click(bm_export);
+        $("div#dialog div.files div[data-val]").mousedown(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var hash = "#" + decodeURIComponent($(this).data("val"));
+            if (e.which === 1) {
+                window.location.hash = hash;
+                try {
+                    load_file();
+                    $("div#dialog div.close").click();
+                } catch (e) {
+                    ;
+                }
+                return;
+            } else if (e.which === 3) {
+                window.open("/" + hash);
+                return false;
+            }
+        });
+    }
     function print() {
         require("ace/config").loadModule("ace/ext/static_highlight", function(m) {
             var result = m.renderSync(
@@ -157,143 +328,195 @@ $(document).ready(function(){
         editor.prompt({ $type: "gotoLine" });
     }
     function build_toolbar(){
-        var buildDom = ace.require("ace/lib/dom").buildDom;
-        buildDom(
+        var tools = [
             [
                 "div",
-                { class: "toolbar" },
-                [
-                    "div",
-                    {
-                        class: "sponsor ace-tomorrow-night-bright",
-                        onclick: function () {
-                            open("https://ace.c9.io/build/kitchen-sink.html");
-                        }
-                    },
-                    "ACE"
-                ],
-                [
-                    "div",
-                    {
-                        class: "ace-tomorrow-night-bright",
-                        ref: "openButton",
-                        onclick: open_file
-                    },
-                    "Open"
-                ],
-                [
-                    "div",
-                    {
-                        class: "ace-tomorrow-night-bright",
-                        ref: "saveButton",
-                        onclick: save_file
-                    },
-                    "Save"
-                ],
-                [
-                    "div",
-                    {
-                        class: "ace-tomorrow-night-bright",
-                        ref: "saveAsButton",
-                        onclick: save_as_file
-                    },
-                    "Save As"
-                ],
-                [
-                    "div",
-                    {
-                        class: "ace-tomorrow-night-bright",
-                        ref: "historyButton",
-                        onclick: file_history
-                    },
-                    "History"
-                ],
-                [
-                    "div",
-                    {
-                        class: "ace-tomorrow-night-bright",
-                        ref: "findButton",
-                        onclick: function () {
-                            editor.execCommand("find")
-                        }
-                    },
-                    "Find"
-                ],
-                [
-                    "div",
-                    {
-                        class: "ace-tomorrow-night-bright",
-                        ref: "findButton",
-                        onclick: function () {
-                            editor.execCommand("replace")
-                        }
-                    },
-                    "Replace"
-                ],
-                [
-                    "div",
-                    {
-                        class: "ace-tomorrow-night-bright",
-                        ref: "wrapButton",
-                        onclick: function () {
-                            wrap_setting = !wrap_setting;
-                            editor.setOption("wrap", wrap_setting);
-                        }
-                    },
-                    "Wrap"
-                ],
-                [
-                    "div",
-                    {
-                        class: "ace-tomorrow-night-bright",
-                        ref: "printButton",
-                        onclick: print
-                    },
-                    "Print"
-                ],
-                [
-                    "div",
-                    {
-                        class: "ace-tomorrow-night-bright",
-                        ref: "logButton",
-                        onclick: function () {
-                            window.open("./log.log");
-                        }
-                    },
-                    "Log"
-                ],
-                [
-                    "div",
-                    {
-                        class: "ace-tomorrow-night-bright",
-                        ref: "helpButton",
-                        onclick: function () {
-                            var kbs = "<div class='files'><table class='ace-tomorrow-night-bright' style='margin: 0 auto'>";
-                            var _ = [];
-                            for (var key in editor.keyBinding.$defaultHandler.commandKeyBinding) {
-                                _.push([key, editor.keyBinding.$defaultHandler.commandKeyBinding[key]]);
-                            }
-                            _.sort(function(a, b) {
-                                a = a[0];
-                                b = b[0];
-                                return a < b ? -1 : (a > b ? 1 : 0);
-                            });
-                            for (var i = 0; i < _.length; i++) {
-                                var k = _[i][0].replace(/-/g, " ").split(" ");
-                                for (var j=0; j<k.length; j++){
-                                    k[j] = k[j].substr(0, 1).toUpperCase()+k[j].substr(1);
-                                }
-                                k = k.join(" ");
-                                var v = _[i][1];
-                                kbs += "<tr><th>"+k+"</th><td>"+v["description"]+"</td></tr>";
-                            }
-                            kbs += "</table></div>";
-                            $("div#dialog").append(kbs).show();
-                        }
-                    },
-                    "Help"
-                ],
+                {
+                    class: "sponsor ace-tomorrow-night-bright",
+                    onclick: function () {
+                        open("https://ace.c9.io/build/kitchen-sink.html");
+                    }
+                },
+                "ACE"
             ],
+            [
+                "div",
+                {
+                    class: "ace-tomorrow-night-bright",
+                    ref: "openButton",
+                    onclick: open_file
+                },
+                "Open"
+            ],
+            [
+                "div",
+                {
+                    class: "ace-tomorrow-night-bright",
+                    ref: "saveButton",
+                    onclick: save_file
+                },
+                "Save"
+            ],
+            [
+                "div",
+                {
+                    class: "ace-tomorrow-night-bright",
+                    ref: "saveAsButton",
+                    onclick: save_as_file
+                },
+                "Save As"
+            ],
+            [
+                "div",
+                {
+                    class: "ace-tomorrow-night-bright",
+                    ref: "historyButton",
+                    onclick: file_history
+                },
+                "History"
+            ],
+            [
+                "div",
+                {
+                    class: "ace-tomorrow-night-bright",
+                    ref: "bookmarkButton",
+                    onclick: bookmark
+                },
+                "Bookmark"
+            ],
+            [
+                "div",
+                {
+                    class: "ace-tomorrow-night-bright",
+                    ref: "findButton",
+                    onclick: function () {
+                        editor.execCommand("find")
+                    }
+                },
+                "Find"
+            ],
+            [
+                "div",
+                {
+                    class: "ace-tomorrow-night-bright",
+                    ref: "findButton",
+                    onclick: function () {
+                        editor.execCommand("replace")
+                    }
+                },
+                "Replace"
+            ],
+            [
+                "div",
+                {
+                    class: "ace-tomorrow-night-bright",
+                    ref: "wrapButton",
+                    onclick: function () {
+                        wrap_setting = !wrap_setting;
+                        editor.setOption("wrap", wrap_setting);
+                    }
+                },
+                "Wrap"
+            ],
+            [
+                "div",
+                {
+                    class: "ace-tomorrow-night-bright",
+                    ref: "printButton",
+                    onclick: print
+                },
+                "Print"
+            ],
+            [
+                "div",
+                {
+                    class: "ace-tomorrow-night-bright",
+                    ref: "downloadButton",
+                    onclick: function () {
+                        var fn;
+                        if (window.location.hash.slice(1)) {
+                            fn = window.location.hash.split("/").slice(-1)[0];
+                        }
+                        else{
+                            var q = window.location.search.split("url=");
+                            if (q.length === 2) {
+                                fn = q.slice(-1)[0].split("/").slice(-1)[0];
+                            }
+                            else {
+                                return;
+                            }
+                        }
+                        download(fn, editor.session.getValue());
+                    }
+                },
+                "Download"
+            ],
+            [
+                "div",
+                {
+                    class: "ace-tomorrow-night-bright",
+                    ref: "logsButton",
+                    onclick: function () {
+                        window.open("./log.log");
+                        window.open("./ace.log");
+                    }
+                },
+                "Logs"
+            ],
+            [
+                "div",
+                {
+                    class: "ace-tomorrow-night-bright",
+                    ref: "helpButton",
+                    onclick: function () {
+                        var kbs = "<div class='files'><table class='ace-tomorrow-night-bright' style='font-size:2vh; border-collapse: collapse;width: 100%;margin: 0 auto'>";
+                        var _ = [];
+                        for (var key in editor.keyBinding.$defaultHandler.commandKeyBinding) {
+                            _.push([key, editor.keyBinding.$defaultHandler.commandKeyBinding[key]]);
+                        }
+                        _.sort(function(a, b) {
+                            a = a[0];
+                            b = b[0];
+                            return a < b ? -1 : (a > b ? 1 : 0);
+                        });
+                        for (var i = 0; i < _.length; i++) {
+                            var k = _[i][0].replace(/-/g, " ").split(" ");
+                            for (var j=0; j<k.length; j++){
+                                k[j] = k[j].substr(0, 1).toUpperCase()+k[j].substr(1);
+                            }
+                            k = k.join(" ");
+                            var v = _[i][1];
+                            kbs += "<tr><th>"+k+"</th><td>"+v["description"]+"</td></tr>";
+                        }
+                        kbs += "</table></div>";
+                        $("div#dialog").append(kbs).show();
+                    }
+                },
+                "Help"
+            ]
+        ];
+        var toolbar = [
+            "div",
+            { class: "toolbar" }
+        ];
+        var url_blacklist_tools = [
+            "Open",
+            "Save",
+            "Save As",
+            "History",
+            "Bookmark",
+        ];
+        for (var i=0; i<tools.length; i++) {
+            if (window.location.search.split("url=").length === 2) {
+                if (url_blacklist_tools.indexOf(tools[i][2]) !== -1) {
+                    continue;
+                }
+            }
+            toolbar.push(tools[i]);
+        }
+        var buildDom = ace.require("ace/lib/dom").buildDom;
+        buildDom(
+            toolbar,
             $("div#toolbar").get(0),
             btns
         )
@@ -418,6 +641,40 @@ $(document).ready(function(){
                 mac("h", 1),
             ],
             [
+                "bookmark",
+                "Bookmark",
+                bookmark,
+                win("b", 1),
+                mac("b", 1),
+            ],
+            [
+                "togglebookmark",
+                "Toggle Bookmark",
+                function () {
+                    bm_toggle(window.location.hash.slice(1));
+                },
+                win("b",0, 0, 1),
+                mac("b",0, 0, 1),
+            ],
+            [
+                "opennewtab",
+                "Open New Tab",
+                function () {
+                    window.open("/");
+                },
+                win("t", 0, 0, 1),
+                mac("t", 0, 0, 1),
+            ],
+            [
+                "duplicatetab",
+                "Duplicate Tab",
+                function () {
+                    window.open("/"+window.location.hash);
+                },
+                win("d", 0, 0, 1),
+                mac("d", 0, 0, 1),
+            ],
+            [
                 "replace2",
                 "Replace Text",
                 function(){
@@ -515,7 +772,15 @@ $(document).ready(function(){
                 "forEachLine",
             ],
 
-        ]
+        ];
+        var url_blacklist_cmds = [
+            "save",
+            "save_as",
+            "open",
+            "history",
+            "bookmark",
+            "togglebookmark"
+        ];
         var safe_keybinds = [
             "ctrl-y","cmd-y",
             "ctrl-z", "cmd-z",
@@ -544,31 +809,40 @@ $(document).ready(function(){
             }
         }
         for (var i=0; i<cmds.length; i++) {
+            if (window.location.search.split("url=").length === 2) {
+                if (url_blacklist_cmds.indexOf(cmds[i][0]) !== -1) {
+                    continue;
+                }
+            }
             editor.commands.addCommand(build_cmds(cmds[i]));
         }
         console.log("Key Binds", editor.keyBinding.$defaultHandler.commandKeyBinding);
     }
     function setup_linesep(linesep) {
+        $("div#linesepselect > div").removeClass("highlight");
         $("div#linesepselect > div[data-sep='"+linesep.toLowerCase()+"']").addClass("highlight");
-        $("div#statusbar .linesep").text(linesep).off("click").click(function () {
+        $("div#statusbar .linesep").html(linesep.padEnd(4, " ").replace(/ /g, "&nbsp;")).off("click").click(function () {
             var linesepselect = $("div#linesepselect");
             if (linesepselect.is(":visible")){
                 linesepselect.hide();
             }
             else {
-                linesepselect.show();
                 var offset = $(this).offset();
-                offset.top = "calc(100vh - 4vh - 5px - "+linesepselect.height()+"px)";
-                linesepselect.css(offset);
+                linesepselect.show(0, function() {
+                    offset.top = "calc(100vh - 4vh - 5px - " + linesepselect.height() + "px)";
+                    linesepselect.css(offset);
+                });
             }
         });
     }
     function load_file(){
+        function guess_mode(f){
+            return modelist.getModeForPath(f).mode;
+        }
         if (window.location.hash.slice(1)){
             prev_hash = window.location.hash.slice(1);
             var f = decodeURIComponent(window.location.hash.slice(1));
-            var mode = modelist.getModeForPath(f).mode;
-            editor.session.setMode(mode);
+            editor.session.setMode(guess_mode(f));
             backup_post(api_url, {"file": f}, function (response) {
                 response = decodeURIComponent(atob(response));
                 last_path = f.split("/").slice(0, -1).join("/");
@@ -596,7 +870,26 @@ $(document).ready(function(){
         }
         else {
             setup_linesep("LF");
-            set_status("Editor loaded. Text mode. Temp mode. Open or New file to continue.");
+            original_text = "";
+            function callback(v, error){
+                editor.session.setValue(v, -1);
+                var status = "Editor loaded. Text mode. Temp mode. Open or New file to continue.";
+                if (error) {
+                    status += error;
+                }
+                set_status(status);
+            }
+            var url = window.location.search.split("url=");
+            if (url.length == 2) {
+                url = url.slice(-1)[0];
+                editor.session.setMode(guess_mode(url));
+                $.get(url, callback).fail(function(){
+                    callback("", " Failed to get file from url.");
+                });
+            }
+            else {
+                callback("");
+            }
         }
     }
     function setup_events() {
@@ -621,14 +914,11 @@ $(document).ready(function(){
         });
         $("div#statusbar .ace_status-indicator").click(gotoline);
         $("div#linesepselect > div").click(function () {
-            $(this).parent().children().removeClass("highlight");
-            $(this).addClass("highlight");
             var linesep = $(this).data("sep");
-            var linesep_e = $("div#statusbar .linesep");
-            if (linesep_e.text() === "???" && !confirm("Are you sure to replace all CR and LF to "+linesep.toUpperCase()+"?")){
+            if ($("div#statusbar .linesep").text() === "???" && !confirm("Are you sure to replace all CR and LF to "+linesep.toUpperCase()+"?")){
                 return;
             }
-            linesep_e.text(linesep.toUpperCase());
+            setup_linesep(linesep.toUpperCase());
             linesep = linesep.replace("cr", "\r").replace("lf", "\n");
             var content = editor.session.getValue();
             content = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
