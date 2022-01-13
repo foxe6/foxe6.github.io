@@ -68,7 +68,7 @@ $(document).ready(function(){
         open_path(last_path);
     }
     function save_file(e, fp) {
-        var history_name;
+        var history_name = "";
         if (!fp) {
             fp = window.location.hash.slice(1);
             if (editor.session.getValue() === original_text) {
@@ -97,8 +97,12 @@ $(document).ready(function(){
         });
     }
     function save_as_file(e) {
-        var fp = prompt("Current file path: '"+window.location.hash.slice(1)+"'\nEnter new file path: (relative/absolute)");
+        var cur_path = window.location.hash.slice(1).split("/").slice(0, -1).join("/");
+        var fp = prompt("Current file path: '"+cur_path+"'\nEnter new file path: (relative/absolute)");
         if (!fp) return;
+        if (fp.split(/(\/|\\)/g).length === 1){
+            fp = cur_path+"/"+fp;
+        }
         if (confirm("Save as file '"+fp+"'?")) {
             return save_file(e, fp);
         }
