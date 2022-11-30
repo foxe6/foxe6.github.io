@@ -35,6 +35,7 @@ $(document).ready(function() {
             $("div#f1").css({"background-position-y": (1-percentComplete)*-$("div#f1").height()});
         }
     }, function(tags){
+        $("div#f1").css({"background-position-y": 0});
         $("div#f1 div.parse").text("100%");
         ajax_progress("GET", "kks.json", null, function(e) {
             if (e.lengthComputable) {
@@ -45,6 +46,7 @@ $(document).ready(function() {
                 $("div#f2").css({"background-position-y": (1-percentComplete)*-$("div#f2").height()});
             }
         }, function(kks){
+            $("div#f2").css({"background-position-y": 0});
             $("div#f2 div.parse").text("100%");
             ajax_progress("GET", "cache2.zip", "arraybuffer", function(e) {
                 if (e.lengthComputable) {
