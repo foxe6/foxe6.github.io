@@ -272,8 +272,7 @@ $(document).ready(function () {
                 }
             }
             else{
-                $(img).removeClass("w");
-                $(img).removeClass("h");
+                $(img).removeClass("w").removeClass("h").removeAttr("style");
             }
         }, 200);
         if(dirs.length){
