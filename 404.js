@@ -262,6 +262,9 @@ $(document).ready(function () {
         let img = $("div.img img")[0];
         let purl;
         let cti = setInterval(function(){
+            if(purl!==img.src){
+                $(img).removeClass("w").removeClass("h").removeAttr("style");
+            }
             if(purl!==img.src||img.complete&&img.naturalWidth){
                 if(!($(img).hasClass("w")||$(img).hasClass("h"))){
                     if(img.naturalWidth>img.naturalHeight){
