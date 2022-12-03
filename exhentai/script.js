@@ -109,6 +109,15 @@ function main(r) {
             }
         }
     });
+    $("#slideshow").on("click", function(){
+        let fs = [];
+        let imgs = (window.temp_r||[]).map(function(e){
+            fs.push(0);
+            return e["thumb"];
+        });
+        window.onpopstate=null;
+        $.new_gallery_page("exhentai gallery", imgs, [], fs, null, 1);
+    });
     let to;
     $("#search_hint").on("mouseenter", function(){
         $("#f_search").off("blur");
@@ -235,6 +244,7 @@ function main(r) {
     let tags_hint2 = new Map();
     let tags_hint = {};
     let parody_character_relationship = {};
+    window.temp_r=null;
     for(let kk of kks.concat(kks2)){
         tags_hint[kk] = {};
     }
@@ -457,6 +467,7 @@ function do_search(ps){
         return b["rating"] - a["rating"];
     }]];
     results.sort(sorts[sort][order]);
+    window.temp_r = results;
     return [results.slice(ps*page, ps*(page+1)), results.length];
 }
 function do_show(results, length){
