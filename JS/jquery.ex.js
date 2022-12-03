@@ -201,7 +201,7 @@ $.new_gallery_page = function(title, imgs, dirs, fs, cb){
     $("link[href='style.css']").remove();
     $.get("/404.css", function(css){
         $.get("/404.js", function(js){
-            $.get("/?require=gallery_template", function(r){
+            $.get("/require=gallery_template.html", function(r){
                 r = r.replace("<imgs>", JSON.stringify(imgs));
                 r = r.replace("<dirs>", JSON.stringify(dirs));
                 r = r.replace("<fs>", JSON.stringify(fs));
