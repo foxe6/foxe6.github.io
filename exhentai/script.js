@@ -26,7 +26,9 @@ $(document).ready(function() {
         var i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
         return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'KB', 'MB', 'GB', 'TB'][i];
     }
-    ajax_progress("GET", "tags.json", null, function(e) {
+    let base = "https://foxe6.github.io/exhentai/";
+    let version = "?beta=0.0.1";
+    ajax_progress("GET", base+"tags.json"+version, null, function(e) {
         if (e.lengthComputable) {
             var percentComplete = e.loaded / e.total;
             if(percentComplete===1)$("div#f1 div.parse").text("50%");
@@ -38,7 +40,7 @@ $(document).ready(function() {
         $("div#f1").css({"background-position-y": 0});
         $("div#f1 div.download").text("100%");
         $("div#f1 div.parse").text("100%");
-        ajax_progress("GET", "kks.json", null, function(e) {
+        ajax_progress("GET", base+"kks.json"+version, null, function(e) {
             if (e.lengthComputable) {
                 var percentComplete = e.loaded / e.total;
                 if(percentComplete===1)$("div#f2 div.parse").text("50%");
@@ -50,7 +52,7 @@ $(document).ready(function() {
             $("div#f2").css({"background-position-y": 0});
             $("div#f2 div.download").text("100%");
             $("div#f2 div.parse").text("100%");
-            ajax_progress("GET", "cache2.zip", "arraybuffer", function(e) {
+            ajax_progress("GET", base+"cache2.zip"+version, "arraybuffer", function(e) {
                 if (e.lengthComputable) {
                     var percentComplete = e.loaded / e.total;
                     if(percentComplete===1)$("div#f3 div.parse").text("25%");
