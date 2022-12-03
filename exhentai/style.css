@@ -460,15 +460,24 @@ div.progress[id] div.parse:before {
 div#search_hint{
     display: none;
     position: absolute;
-    width: 50%;
+    width: 560px;
+    max-height: 50%;
+    overflow: auto;
     background-color: #4f535b;
     left: 191.641px;
     border: 2px ridge #3c3c3c;
     z-index: 100;
     font-size: 2em;
     text-align: left;
-    padding: 0.25em;
+    /*padding: 0.25em 0;*/
 }
-div#search_hint:not(:first-child){
-    margin-top: 0.25em;
+div#search_hint div{
+    padding: 0.25em;
+    cursor: pointer;
+}
+div#search_hint div:hover{
+    background-color: rgba(255,255,255,0.1);
+}
+div#search_hint div:not(:first-child){
+    /*margin-top: 0.25em;*/
 }

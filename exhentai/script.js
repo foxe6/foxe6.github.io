@@ -108,13 +108,22 @@ function main(r) {
         }
     });
     let to;
+    $("#search_hint").on("mouseenter", function(){
+        $("#f_search").off("blur");
+    }).on("mouseleave", function(){
+        $("#f_search").on("blur", function(){
+            $("#search_hint").hide();
+        }).focus();
+    });
     $("#f_search").on("blur", function(){
         $("#search_hint").hide();
     }).on("keyup", function(){
         clearTimeout(to);
         let _this = $(this);
         to = setTimeout(function(){
+            let parody;
             let v = _this.val();
+            let r = v;
             let m = [];
             v = v.replace(/"(.*?)"/g, function(a,b,c,d){
                 return b.replace(/ /g, "\u00a0");
@@ -122,30 +131,84 @@ function main(r) {
             v = v.replace(/[a-z]:"([^"]+)$/, function(a){
                 return a.replace(/ /g, "\u00a0");
             });
+            let word;
             // console.log(encodeURI(v));
-            let last = v.split(/ /g).pop().replace(/\u00a0/g, " ").split(":");
+            let last = v.split(/ /g);
+            if(v.indexOf("parody:")!==-1&&v.indexOf("character:")!==-1){
+                for(let llast of last){
+                    if(llast.indexOf("parody:")===0){
+                        let p = llast.replace(/\u00a0/g, " ").split(":").pop();
+                        if(p in parody_character_relationship){
+                            parody = p;
+                            break;
+                        }
+                    }
+                }
+            }
+            last = last.pop().replace(/\u00a0/g, " ").split(":");
             if(last.length===2){
                 let pv = last[0];
                 let v2 = last.pop().split('"').pop();
+                word = v2;
                 // console.log(pv, v2, tags_hint[pv]);
                 if(pv in tags_hint){
-                    for(let kw of tags_hint[pv]){
-                        if(!v2||kw.indexOf(v2)===0){
-                            m.push(kw);
+                    for(let kw in tags_hint[pv]){
+                        if(parody&&pv==="character"&&parody_character_relationship[parody].indexOf(kw)===-1){
+                            continue;
                         }
-                        if(m.length>20) break;
+                        if(!v2||kw.indexOf(v2)===0){
+                            m.push([kw, tags_hint[pv][kw]]);
+                        }
                     }
+                    m = m.sort(function(a, b){
+                        let r = b[1]-a[1];
+                        if(r) return r;
+                        return a[0].localeCompare(b[0]);
+                    });//.slice(0, 20);
                 }
             }
             else{
                 if(v.match(/ $/)||!v){
-                    m = kks.concat(kks2);
+                    m = kks.concat(kks2).sort(function(a, b){
+                        return a[0].localeCompare(b[0]);
+                    }).map(function(e){
+                        return [e+":", 0];
+                    });
+                    word = v;
+                }
+                else{
+                    let last = v.split(/ /g).pop();
+                    for(let kk of kks.concat(kks2)){
+                        if(kk.indexOf(last)===0){
+                            m.push([kk+":", 0]);
+                        }
+                    }
+                    word = last;
                 }
             }
-            // console.log(m);
             $("#search_hint").css({"top": _this.offset().top+_this.outerHeight(), "left": _this.offset().left}).empty()[m.length?"show":"hide"]();
-            for(let kw of m){
-                $("#search_hint").append("<div>"+kw+"</div>");
+            if(m.length){
+                for(let [kw, ct] of m){
+                    $("#search_hint").append("<div data-kw='"+kw+"'>"+kw+(ct?" ("+ct+")":"")+"</div>");
+                }
+                $("#search_hint div").on("click", function(){
+                    if(word){
+                        let i=r.lastIndexOf(word);
+                        if(i!==-1){
+                            r = r.substring(0, i);
+                        }
+                    }
+                    let kw = $(this).data("kw");
+                    r = r.replace(/"$/,"");
+                    if(kw.indexOf(" ")===-1){
+                        r += kw;
+                    }
+                    else{
+                        r += '"'+kw+'"';
+                    }
+                    // console.log(r);
+                    $("#f_search").val(r).trigger("keyup");
+                });
             }
         }, 500);
     });
@@ -169,23 +232,33 @@ function main(r) {
     ];
     let tags_hint2 = new Map();
     let tags_hint = {};
+    let parody_character_relationship = {};
     for(let kk of kks.concat(kks2)){
-        tags_hint[kk] = [];
+        tags_hint[kk] = {};
     }
     for(let fid in r){
         let v = r[fid];
         let attr = "";
-        v["title"] = $.unescape(v["title"]);
+        if(v["title"].indexOf("&")!==-1){
+            v["title"] = $.unescape(v["title"]);
+        }
         for(let kk of kks){
+            if(!(kk in v)){
+                continue;
+            }
             if(attr)
                 attr += " ";
-            let t = kk+":"+v[kk];
+            let vv = v[kk];
+            let t = kk+":"+vv;
             attr += t;
             if(!tags_hint2.has(t)){
                 tags_hint2.set(t, null);
-                tags_hint[kk].push(v[kk]);
+                tags_hint[kk][vv] = 0;
             }
+            tags_hint[kk][vv] += 1;
         }
+        let parody = [];
+        let character = [];
         for(let t of v["tags"]){
             if(attr)
                 attr += " ";
@@ -193,7 +266,28 @@ function main(r) {
             tp = t.split(":");
             if(!tags_hint2.has(t)){
                 tags_hint2.set(t, null);
-                tags_hint[tp[0]].push(tp[1]);
+                if(!(tp[0] in tags_hint))
+                    tags_hint[tp[0]] = {};
+                tags_hint[tp[0]][tp[1]] = 0;
+            }
+            tags_hint[tp[0]][tp[1]] += 1;
+            if(tp[0]==="parody"){
+                if(!(tp[1] in parody_character_relationship)){
+                    parody_character_relationship[tp[1]] = new Map();
+                }
+                parody.push(tp[1]);
+            }
+            else if(tp[0]==="character"){
+                character.push(tp[1]);
+            }
+        }
+        if(parody.length===1){
+            for(let p of parody){
+                for(let c of character){
+                    if(!parody_character_relationship[p].has(c)){
+                        parody_character_relationship[p].set(c, null);
+                    }
+                }
             }
         }
         let id = Math.floor(parseInt(fid.split("/")[0])/1000);
@@ -201,8 +295,12 @@ function main(r) {
         v["attr"] = attr;
         items.push(v);
     }
+    for(let k in parody_character_relationship){
+        parody_character_relationship[k] = Array.from(parody_character_relationship[k].keys());
+    }
+    console.debug(tags_hint);
+    console.debug(parody_character_relationship);
     tags_hint2.clear();
-    window.tags_hint = tags_hint;
     init();
 }
 function init(){
