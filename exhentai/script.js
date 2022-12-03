@@ -113,7 +113,7 @@ function main(r) {
         let fs = [];
         let imgs = (window.temp_r||[]).map(function(e){
             fs.push(0);
-            return e["thumb"];
+            return e["thumb"].replace("jpg_l.", "jpg_250.");
         });
         window.onpopstate=null;
         $.new_gallery_page("exhentai gallery", imgs, [], fs, null, 1);
