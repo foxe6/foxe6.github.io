@@ -264,10 +264,10 @@ $(document).ready(function () {
             if(img.complete&&img.naturalWidth){
                 if(!($(img).hasClass("w")||$(img).hasClass("h"))){
                     if(img.naturalWidth>img.naturalHeight){
-                        $(img).addClass("w");
+                        $(img).addClass("w").css({"min-width": $(img).parent().width()});
                     }
                     else{
-                        $(img).addClass("h");
+                        $(img).addClass("h").css({"min-height": $(img).parent().height()});
                     }
                 }
             }
