@@ -260,8 +260,9 @@ $(document).ready(function () {
     }
     function mode2(){
         let img = $("div.img img")[0];
+        let purl;
         let cti = setInterval(function(){
-            if(img.complete&&img.naturalWidth){
+            if(purl!==img.src||img.complete&&img.naturalWidth){
                 if(!($(img).hasClass("w")||$(img).hasClass("h"))){
                     if(img.naturalWidth>img.naturalHeight){
                         $(img).addClass("w").css({"min-width": $(img).parent().width()});
@@ -274,6 +275,7 @@ $(document).ready(function () {
             else{
                 $(img).removeClass("w").removeClass("h").removeAttr("style");
             }
+            purl = img.src;
         }, 200);
         if(dirs.length){
             let file = "<div class='file'><a href='<dir1>/'><dir2></a></div>";
