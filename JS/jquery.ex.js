@@ -130,6 +130,9 @@ $.encodeURI=function(s){
     if(/^blob:http/.test(s)){
         return s;
     }
+    if(/^data:/.test(s)){
+        return s;
+    }
     var start = 0;
     if (/^https?:\/\//.test(s)){
         start = 2;
@@ -195,6 +198,9 @@ $.js_download_text = function(text, name){
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+}
+JSON.dumps = function(w){
+    return JSON.stringify(w).replace(/[^\x20-\x7F]/g, x => "\\u" + ("000"+x.codePointAt(0).toString(16)).slice(-4));
 }
 $.new_gallery_page = function(title, imgs, dirs, fs, cb, local){
     window.location.hash = "";
