@@ -268,10 +268,10 @@ $(document).ready(function () {
             if(purl!==img.src||img.complete&&img.naturalWidth){
                 if(!($(img).hasClass("w")||$(img).hasClass("h"))){
                     if(img.naturalWidth>img.naturalHeight){
-                        $(img).addClass("w").css({"min-width": $(img).parent().width()});
+                        $(img).addClass("w");//.css({"min-width": $(img).parent().width()});
                     }
                     else{
-                        $(img).addClass("h").css({"min-height": $(img).parent().height()});
+                        $(img).addClass("h");//.css({"min-height": $(img).parent().height()});
                     }
                 }
             }
