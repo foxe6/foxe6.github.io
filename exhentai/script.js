@@ -28,7 +28,7 @@ $(document).ready(function() {
         return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'KB', 'MB', 'GB', 'TB'][i];
     }
     let base = "";"https://foxe6.github.io/exhentai/";
-    let version = "?beta=0.0.2";
+    let version = "?beta=0.0.1";
     ajax_progress("GET", base+"tags.json"+version, null, function(e) {
         if (e.lengthComputable) {
             var percentComplete = e.loaded / e.total;
@@ -523,7 +523,23 @@ function do_search(ps){
     }
     let sort = $.GET["sort"][0];
     $("select#sort").val(sort);
-    sort = sort==="gid"?0:1;
+    switch(sort){
+        case "gid":
+            sort = 0;
+            break;
+        case "rating":
+            sort = 1;
+            break;
+        case "filecount":
+            sort = 2;
+            break;
+        case "filesize":
+            sort = 3;
+            break;
+        default:
+            sort = 0;
+            break;
+    }
     let order = $.GET["order"][0];
     $("select#order").val(order);
     order = order==="asc"?0:1;
@@ -533,6 +549,14 @@ function do_search(ps){
         return a["rating"] - b["rating"];
     }, function(a, b){
         return b["rating"] - a["rating"];
+    }], [function(a, b){
+        return a["filecount"] - b["filecount"];
+    }, function(a, b){
+        return b["filecount"] - a["filecount"];
+    }], [function(a, b){
+        return a["filesize"] - b["filesize"];
+    }, function(a, b){
+        return b["filesize"] - a["filesize"];
     }]];
     let f = sorts[sort][order];
     f&&results.sort(f);
@@ -612,7 +636,6 @@ function do_show(results, length){
     $(".itg.gld .gl3t a").on("click", function(e){
         e.preventDefault();
         e.stopPropagation();
-        if($(this).attr("href").indexOf("/null/")!==-1) return;
         let r = window.temp_r[$(this).closest(".gl1t").data("fid")];
         let _item = {};
         for(let kk of [
@@ -628,6 +651,9 @@ function do_show(results, length){
             "uploader",
             "thumb",
             "filesize",
+            "torrents",
+            "torrentcount",
+            "first_gid",
             "rating"
         ]){
             _item[kk] = r[kk];
@@ -658,4 +684,3 @@ function search_presubmit2(){
     if(href) href = "?"+href;
     window.history.pushState("./", "./", "./"+href);
 }
-

@@ -531,3 +531,13 @@ a[href='https://exhentai.org/g///'] img{
     left: 120%;
   }
 }
+@media only screen and (hover: none) and (pointer: coarse){
+    @supports (display:grid){
+        .itg.gld {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .gl1t {
+            max-width: initial !important;
+        }
+    }
+}
