@@ -1,0 +1,104 @@
+<html>
+<head>
+<title>ExHentai.org</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="referrer" content="no-referrer">
+<!--<link rel="stylesheet" type="text/css" href="https://exhentai.org/z/0361/x.css" />-->
+<link rel="stylesheet" href="style.css"></link>
+<script src="/JS/loading-polyfill.js"></script>
+<script src="/JS/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.1.0/jszip-utils.min.js"></script>
+<style type="text/css">
+table#ett{margin:8px auto;width:95%;overflow:auto;vertical-align:top;background:#43464e;border:1px solid #34353b;padding:1px 4px}div#etd{margin:8px auto;width:95%;height:240px;overflow:auto;vertical-align:top;background:#43464e;border:1px solid #34353b;font-size:8pt;padding:1px 4px;text-align:justify}
+</style>
+</head>
+<body>
+<script type="text/javascript">
+function popUp(URL,w,h) {
+	window.open(URL,"_pu"+(Math.random()+"").replace(/0\./,""),"toolbar=0,scrollbars=0,location=0,statusbar=0,menubar=0,resizable=0,width="+w+",height="+h+",left="+((screen.width-w)/2)+",top="+((screen.height-h)/2));
+	return false;
+}
+
+function humanFileSize(size) {
+    var i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
+    return (size / Math.pow(1024, i)).toFixed(2) * 1 + " " + ["B", "KB", "MB", "GB", "TB"][i];
+}
+let _item = JSON.parse(atob(decodeURIComponent(window.location.search.slice(1)).replace(/ /g, "+")));
+let template = `<form method="post" action="https://exhentai.org/gallerytorrents.php?gid=<gid>&amp;t=<token>">
+<div style="margin:10px 5px; padding:3px; border:1px solid #C7B5A3">
+<input type="hidden" name="gtid" value="1206398" />
+<table style="width:99%">
+<tr>
+ <td style="width:180px"><span style="font-weight:bold">Posted:</span> <posted></td>
+ <td style="width:150px"><span style="font-weight:bold">Size:</span> <filesize></td>
+ <td></td>
+ <td style="width:80px"><span style="font-weight:bold">Seeds:</span> ?</td>
+ <td style="width:80px"><span style="font-weight:bold">Peers:</span> ?</td>
+ <td style="width:100px; text-align:center"><span style="font-weight:bold">Downloads:</span> ?</td>
+</tr>
+<tr>
+ <td colspan="5"><span style="font-weight:bold">Uploader:</span> <uploader></td>
+ 
+ <td rowspan="2" style="width:100px; text-align:center"><input type="button" name="torrent_info" value="Information" style="width:80px" /></td>
+</tr>
+<tr>
+ <td colspan="5"> &nbsp; <a href="https://exhentai.org/torrent/<fgid>/<hash>.torrent" onclick="document.location='https://exhentai.org/torrent/<fgid>/<hash>.torrent'; return false"><filename></a></td>
+</tr>
+</table>
+</div>
+</form>`;
+</script>
+
+<div class="stuffbox" style="width:584px; height:554px; margin:3px auto; text-align:left; padding:8px; font-size:8pt">
+
+<div id="torrentinfo" style="height:535px; width:100%; overflow:auto">
+
+<div style="height:450px; overflow:auto; margin:auto">
+<h1 style="font-size:12pt; font-weight:bold; margin:3px; text-align:center">title</h1>
+
+<p style="margin:0; padding:3px 0px; text-align:center">number torrent was found for this gallery.</p>
+
+
+</div>
+<!--div style="margin:auto; border-top:1px solid #5C0D12">
+	<div style="margin:0; padding:5px 0px">
+		<span style="font-weight:bold">New Torrents:</span>
+		You can add a torrent for this gallery by uploading it here. The maximum torrent file size is 10 MB.<br />
+		If you are creating the torrent yourself, set this as announce tracker: <span style="font-style:italic">http://ehtracker.org/2395111/announce</span><br />
+		Note that you have to download the finished torrent from this site after uploading for stats to be recorded.
+	</div>
+	<form method="post" action="https://exhentai.org/repo/torrent_post.php?gid=2395111&amp;t=8e55e5d459&amp;auth=5113267-1670318099-d91a912ee14837528611" enctype="multipart/form-data">
+		<div style="height:30px; line-height:30px; vertical-align:middle">
+			<input type="hidden" name="MAX_FILE_SIZE" value="10485760" />
+			<input type="file" name="torrentfile" accept="application/torrent,application/x-torrent,application/x-bittorrent" />
+			<input type="submit" name="torrent_upload" value="Upload Torrent" />
+		</div>
+	</form>
+</div-->
+
+</div>
+
+<div style="text-align:center; margin-top:5px"><a href="#" onclick="window.close(); return false">Close Window</a></div></div>
+<script>
+let p=$("h1").text(_item["title"]).next();
+p.text(p.text().replace("number", _item["torrentcount"]));
+let htmls = "";
+let d = new Date(parseInt(_item["posted"])*1000);
+let dtstr = isNaN(d.getTime())?"YYYY-MM-DD HH:MM":("0" + d.getFullYear()).slice(-4) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getDate() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+for(let [hash, filename, filesize] of _item["torrents"]){
+    htmls += template
+        .replace(/<fgid>/g, _item["first_gid"]||_item["gid"])
+        .replace(/<gid>/g, _item["gid"])
+        .replace(/<token>/g, _item["token"])
+        .replace(/<uploader>/g, _item["uploader"])
+        .replace(/<hash>/g, hash)
+        .replace(/<filename>/g, filename)
+        .replace(/<filesize>/g, humanFileSize(filesize))
+        .replace(/<posted>/g, dtstr)
+    ;
+}
+htmls.length&&p.after(htmls);
+</script>
+</body>
+</html>
