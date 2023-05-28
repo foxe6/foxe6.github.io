@@ -5,9 +5,16 @@ $(document).ready(function(){
         var i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
         return (size / Math.pow(1024, i)).toFixed(2) * 1 + " " + ["B", "KB", "MB", "GB", "TB"][i];
     }
-    let fid = _item.fid;
+    let fid = _item["fid"];
     let _fs;
-    let save_path = "../exhentai/hive/"+Math.floor(parseInt(fid.split("/")[0])/1000)+"/"+fid.replace("/", "_")+".zip";
+    let save_path;
+    if(_item["token"]==="null"){
+        let thumb = _item["thumb"].split("/");
+        save_path = "../wnacg/src/"+thumb[5]+thumb[6]+".zip";
+    }
+    else{
+        save_path = "../exhentai/hive/"+Math.floor(parseInt(fid.split("/")[0])/1000)+"/"+fid.replace("/", "_")+".zip";
+    }
     if(window.location.pathname.indexOf("_test")!==-1){
         $.ajax({
             type: "HEAD",
@@ -31,8 +38,8 @@ $(document).ready(function(){
     $("#rating_count").text("");
     $("#grt2").text(_item["rating"]);
     $("#gdn a").text(_item["uploader"]);
+    $("#gd5 p:nth-child(3) a").text($("#gd5 p:nth-child(3) a").text().replace("tc", _item["torrentcount"])).attr("href", "gallerytorrents.html"+window.location.search);
     $("#gdn a").attr("href", $("#gdn a").attr("href")+_item["uploader"]);
-    $("#gd5 p:nth-child(3) a").attr("onclick", $("#gd5 p:nth-child(3) a").attr("onclick").replace("<gid>", _item["gid"]).replace("<token>", _item["token"]));
     _item["tags"].sort();
     let tag = "";
     let ctag = "";
@@ -48,6 +55,10 @@ $(document).ready(function(){
             tag += taglist_template.replace(/<pv>/g, ctag);
         }
         tagvv += taglist_v_template.replace(/<tag>/g, t).replace(/<vv>/g, vv).replace(/<tag_search>/g, pv+":"+(vv.indexOf(" ")===-1?vv:$.encodeURIComponent('"'+vv+'"')));
+    }
+    if(_item["token"]==="null"){
+        tag = "<h2>This gallery is not a standard entry.</h2><h3>Some information is missing.</h3><h3>You can only view or download this gallery.</h3>";
+        _item["filecount"] = "null";
     }
     if(tagvv){
         tag = tag.replace(/<v>/g, tagvv);
@@ -81,7 +92,7 @@ $(document).ready(function(){
     if(window.location.pathname.indexOf("_test")!==-1){
         $("#gd5 #view").on("click", function(){
             function open(){
-                open_zip(_item["title"], save_path);
+                (_item["token"]==="null"?open_zip2:open_zip)(_item["title"], save_path);
             }
             if(_fs>=100*1024*1024){
                 if(confirm("The current archive size is too large ("+humanFileSize(_fs)+").\nPlease consider to download instead.\n\nAre you sure to continue?")){
@@ -162,6 +173,66 @@ function open_zip(title, href){
                     // console.log(metadata, files);
                     next();
                 });
+            })
+        }
+    });
+}
+function open_zip2(title, href){
+    JSZipUtils.getBinaryContent(href, function(err, data) {
+        if (!err) {
+            JSZip.loadAsync(data).then(function(zip){
+                let files=Object.keys(zip.files);
+                let metadata = {};
+                let imgs=[];
+                let fs = [];
+                function next(){
+                    let name=files.shift();
+                    if(!name){
+                        $.new_gallery_page("gallery", imgs, [], fs);
+                        return;
+                    }
+                    function _next(r){
+                        console.debug("processed", name, "size", r.byteLength, "remaining", files.length);
+                        next();
+                    }
+                    zip.file(name).async("arraybuffer").then(function(r){
+                        if(r.byteLength>=1.5*1024*1024){
+                            let blob = new Blob([new Uint8Array(r)]);
+                            let url = URL.createObjectURL(blob);
+                            let img = new Image();
+                            img.onload = function(){
+                                let canvas = document.createElement("canvas");
+                                let ctx = canvas.getContext("2d");
+                                let width = img.naturalWidth;
+                                let height = img.naturalHeight;
+                                canvas.width = width;
+                                canvas.height = height;
+                                ctx.drawImage(img, 0, 0, width, height);
+                                img = canvas.toDataURL("image/jpeg",0.7)+"#"+title+" ["+name+"]";
+                                URL.revokeObjectURL(url);
+                                imgs.push(img);
+                                fs.push(0);
+                                _next(r);
+                            }
+                            img.src = url;
+                        }
+                        else{
+                            let blob = new Blob([new Uint8Array(r)]);
+                            let url = URL.createObjectURL(blob)+"#"+title+" ["+name+"]";
+                            imgs.push(url);
+                            fs.push(0);
+                            _next(r);
+                        }
+                    });
+                }
+                files.sort(function(a,b){
+                    a = a.split(".")[0];
+                    b = b.split(".")[0];
+                    a = parseInt(a);
+                    b = parseInt(b);
+                    return a-b;
+                });
+                next();
             })
         }
     });
